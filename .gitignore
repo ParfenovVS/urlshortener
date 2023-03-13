@@ -17,3 +17,5 @@ vendor/
 *.sum
 
 postggres-data
+
+github.com
