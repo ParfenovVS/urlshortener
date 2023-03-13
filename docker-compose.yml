@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres 
+      - POSTGRES_PORT=5432
+    user: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postggres-data:/var/lib/postgresql/data
+      - ./pkg/models/postgresql/sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: curl --fail http://localhost:4000 || exit 1
+      interval: 3s
+      retries: 5
+      start_period: 10s 
+      timeout: 5s
