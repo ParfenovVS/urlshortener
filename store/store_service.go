@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -35,7 +36,12 @@ func InitializeStore() *StorageService {
 	// fmt.Printf("\nRedis started successfully: pong message = {%s}", pong)
 	// storeService.redisClient = redisClient
 
-	psqlconn := "host=db user=postgres password=postgres port=5432 sslmode=disable dbname=postgres"
+	postgresHost := getEnv("POSTGRES_HOST")
+	postgresUser := getEnv("POSTGRES_USER")
+	postgresPassword := getEnv("POSTGRES_PASSWORD")
+	postgresPort := getEnv("POSTGRES_PORT")
+	postgresDbName := getEnv("POSTGRES_DBNAME")
+	psqlconn := fmt.Sprintf("host=%s user=%s password=%s port=%s sslmode=disable dbname=%s", postgresHost, postgresUser, postgresPassword, postgresPort, postgresDbName)
 	db, _ := sql.Open("postgres", psqlconn)
 	err := db.Ping()
 	if err != nil {
@@ -70,4 +76,12 @@ func GetInitialUrl(shortUrl string) string {
 	}
 	// return result
 	return result.OriginalUrl
+}
+
+func getEnv(key string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		panic(fmt.Sprintf("Set %s environment variable", key))
+	}
+	return value
 }

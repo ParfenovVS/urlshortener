@@ -2,7 +2,7 @@ version: "3.9"
 services:
 
   db:
-    image: postgres
+    image: postgres:15.2
     restart: always
     environment:
       - POSTGRES_USER=postgres
@@ -12,7 +12,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./postggres-data:/var/lib/postgresql/data
+      # - ./postggres-data:/var/lib/postgresql/data
       - ./pkg/models/postgresql/sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
@@ -21,7 +21,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:alpine
+    image: redis:7.0.9-alpine
     ports:
       - 6379:6379
 
@@ -30,6 +30,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DBNAME=postgres
     ports:
       - "4000:4000"
     healthcheck:
